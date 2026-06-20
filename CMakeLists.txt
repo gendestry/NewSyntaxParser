@@ -23,3 +23,13 @@ target_include_directories(${PROJECT_NAME}
     PRIVATE
     ${PROJECT_SOURCE_DIR}/src
 )
+
+# Copy the runtime data files next to the binary so the program finds them
+# when run from the build directory. Re-run on every build in case they change.
+foreach(DATA_FILE tokens.txt input.txt lang.syn)
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${CMAKE_SOURCE_DIR}/${DATA_FILE}
+            $<TARGET_FILE_DIR:${PROJECT_NAME}>/${DATA_FILE}
+        COMMENT "Copying ${DATA_FILE} to build output")
+endforeach()

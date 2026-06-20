@@ -1,0 +1,9 @@
+# Arithmetic grammar (ANTLR-flavoured EBNF).
+#   UPPERCASE -> token name (from tokens.txt)
+#   lowercase -> rule reference
+#   precedence is encoded by the rule cascade: expr -> term -> factor
+#   (so '*' / '/' bind tighter than '+' / '-')
+
+expr   : term ((PLUS | MINUS) term)* ;
+term   : factor ((MUL | DIV) factor)* ;
+factor : NUM | LPAREN expr RPAREN ;
