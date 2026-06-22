@@ -1,6 +1,14 @@
 NUM = ([1-9][0-9]* | '0'*)
 !WHITESPACE = (' ' | \n)+
 
+STRUCT = 'struct'
+RETURN = 'return'
+
+INT = 'int'
+CHAR = 'char'
+VOID = 'void'
+BOOL = 'bool'
+
 EQ = '='
 PLUS = '+'
 MINUS = '-'
@@ -8,3 +16,12 @@ MUL = '*'
 DIV = '/'
 LPAREN = '('
 RPAREN = ')'
+
+COMMA = ','
+DOT = '.'
+SEMIC = ';'
+
+LCURLY = '{'
+RCURLY = '}'
+
+IDENTIFIER = \T+

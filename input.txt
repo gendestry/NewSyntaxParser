@@ -1,1 +1,17 @@
-(1 + 2 * (4 - 3))
+struct Data
+{
+    int a;
+    int b;
+};
+
+struct Point {
+  int x;
+  int y;
+  Data d;
+};
+
+int g() {
+  Point p;
+  p.d.a = 10;
+  return p.x;
+};

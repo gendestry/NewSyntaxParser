@@ -1,9 +1,49 @@
-# Arithmetic grammar (ANTLR-flavoured EBNF).
+# Variable-declaration + arithmetic grammar (ANTLR-flavoured EBNF).
 #   UPPERCASE -> token name (from tokens.txt)
 #   lowercase -> rule reference
-#   precedence is encoded by the rule cascade: expr -> term -> factor
-#   (so '*' / '/' bind tighter than '+' / '-')
+#
+# Start rule is var_decl:  type IDENTIFIER (= expr)? ;
+#   e.g.  int x = 1 + 2 * (4 - 3);   or   int* p;
+#   precedence is encoded by the rule cascade: expr -> plusexpr -> mulexpr -> angexpr
+#   (so '*' / '/' bind tighter than '+' / '-', and the unary 'sin' / 'cos'
+#    prefix functions bind tighter still)
+#
+# The operator levels are written as a head followed by a right-recursive
+# "tail" rule (n_plusexpr / n_mulexpr). The tail is optional, which gives it a
+# base case (empty) and lets the chain stop. The chain leans right in the parse
+# tree, but the evaluator folds it left so '+'/'-'/'*'/'/' stay left-associative.
 
-expr   : term ((PLUS | MINUS) term)* ;
-term   : factor ((MUL | DIV) factor)* ;
-factor : NUM | LPAREN expr RPAREN ;
+entry: decl+;
+
+decl: fun_decl | struct_decl | var_decl;
+
+fun_decl    : type IDENTIFIER LPAREN (type IDENTIFIER (COMMA type IDENTIFIER)*)? RPAREN comp_stmt SEMIC;
+var_decl    : type IDENTIFIER (EQ expr)? SEMIC ;
+struct_decl : STRUCT IDENTIFIER LCURLY (var_decl)* RCURLY SEMIC ;
+
+type        : ptr_type | primitive_type ;
+ptr_type    : primitive_type MUL+ ;
+primitive_type: atomic_type | named_type;
+atomic_type : INT | CHAR | VOID | BOOL ;
+named_type  : IDENTIFIER;
+
+expr      : plusexpr n_plusexpr? ;
+
+n_plusexpr: (PLUS | MINUS) plusexpr n_plusexpr? ;
+plusexpr  : mulexpr n_mulexpr? ;
+
+n_mulexpr : (MUL | DIV) mulexpr n_mulexpr? ;
+mulexpr   : access_expr ;
+
+# postfix member access: p.x, p.x.y (left-associative)
+access_expr : angexpr (DOT IDENTIFIER)* ;
+angexpr     : NUM | group | funcall | IDENTIFIER ;
+
+group     : (LPAREN expr RPAREN);
+funcall   : IDENTIFIER LPAREN (expr (COMMA expr)*)? RPAREN;
+
+stmt        : var_decl | assign_stmt | return_stmt | expr_stmt | comp_stmt ;
+assign_stmt : expr EQ expr SEMIC ;
+expr_stmt   : expr SEMIC ;
+return_stmt : RETURN expr? SEMIC;
+comp_stmt   : LCURLY stmt* RCURLY ;
