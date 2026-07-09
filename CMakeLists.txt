@@ -16,12 +16,28 @@ file(GLOB_RECURSE SOURCES src/*.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
+# ---- generated AST header (gen_ast.py reads ast.spec) -----------------------
+# Regenerate build/gen/Ast.gen.h whenever the spec or the generator changes.
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+set(AST_SPEC ${CMAKE_SOURCE_DIR}/ast.spec)
+set(AST_GEN_DIR ${CMAKE_BINARY_DIR}/gen)
+set(AST_GEN_HEADER ${AST_GEN_DIR}/Ast.gen.h)
+add_custom_command(
+    OUTPUT ${AST_GEN_HEADER}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${AST_GEN_DIR}
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/gen_ast.py ${AST_SPEC} ${AST_GEN_HEADER}
+    DEPENDS ${AST_SPEC} ${CMAKE_SOURCE_DIR}/gen_ast.py
+    COMMENT "Generating Ast.gen.h from ast.spec")
+add_custom_target(gen_ast DEPENDS ${AST_GEN_HEADER})
+add_dependencies(${PROJECT_NAME} gen_ast)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE utils)
 target_include_directories(${PROJECT_NAME}
     PUBLIC
     include
     PRIVATE
     ${PROJECT_SOURCE_DIR}/src
+    ${AST_GEN_DIR}
 )
 
 # Copy the runtime data files next to the binary so the program finds them
