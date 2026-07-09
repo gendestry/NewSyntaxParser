@@ -71,7 +71,7 @@
 // Standalone runner for the lang_* explanation code. Compiled by hand, NOT part
 // of the CMake build. Parses temp/lang_input.txt against lang.syn, builds the
 // typed AST, and prints it — no evaluation.
-#include "test/AstBuilder.h"
+#include "AstBuilder.h"
 
 #include "Tokenizer/Parser.h"
 #include "Syntax/GrammarParser.h"

@@ -1,0 +1,24 @@
+# Basic arithmetic grammar (ANTLR-flavoured EBNF).
+#   UPPERCASE -> token name (from tokens.txt)
+#   lowercase -> rule reference
+#
+# Supports  + - * /  and parentheses over integer literals, e.g.
+#   1 + 2 * (4 - 3)
+#
+# Precedence is encoded by the rule cascade: expr -> plusexpr -> mulexpr -> atom
+# so '*' / '/' bind tighter than '+' / '-'. Each operator level is a head
+# followed by an optional right-recursive "tail" (n_plusexpr / n_mulexpr); the
+# tail is optional, giving the chain a base case so it can stop. The tree leans
+# right, but the evaluator folds it left so the operators stay left-associative.
+
+entry: expr ;
+
+expr       : plusexpr n_plusexpr? ;
+n_plusexpr : (PLUS | MINUS) plusexpr n_plusexpr? ;
+
+plusexpr   : mulexpr n_mulexpr? ;
+n_mulexpr  : (MUL | DIV) mulexpr n_mulexpr? ;
+
+mulexpr    : atom ;
+atom       : NUM | group ;
+group      : LPAREN expr RPAREN ;

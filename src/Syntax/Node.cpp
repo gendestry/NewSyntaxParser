@@ -16,8 +16,8 @@ namespace Parsing::Syntax
             Utils::Text::Stream s;
             const auto &t = *node.token;
             s << indent;
-            s << Utils::Font::colorBlue << "[" << t.name << "] " << Utils::Font::reset;
-            s << Utils::Font::colorYellow << "'" << t.value << "'" << Utils::Font::reset;
+            s << Utils::Font::colorBlue << "[" << t.name << "] " << Utils::Font::colorReset;
+            s << Utils::Font::colorYellow << "'" << t.value << "'" << Utils::Font::colorReset;
             // Show name, value and the source position we kept from the lexer.
             // std::cout << indent << t.name << " '" << t.value << "'"
             //           << "  @" << t.row << ":" << t.col << "\n";
@@ -27,7 +27,7 @@ namespace Parsing::Syntax
         {
             Utils::Text::Stream s;
             s << indent;
-            s << Utils::Font::colorMagenta << node.rule << Utils::Font::reset;
+            s << Utils::Font::colorMagenta << node.rule << Utils::Font::colorReset;
             std::cout << s.end() << std::endl;
             for (const auto &k : node.kids)
                 printTree(k, depth + 1);

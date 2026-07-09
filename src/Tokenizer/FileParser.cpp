@@ -54,14 +54,14 @@ namespace Parsing::Tokenizer
 
     void FileParser::print()
     {
-        std::cout << Font::bold << Font::colorGreen << " ==== INPUT TOKENS ==== " << Font::reset << std::endl;
+        std::cout << Font::colorGreen << " ==== INPUT TOKENS ==== " << Font::colorReset << std::endl;
         for (auto &token : tokenMaps)
         {
-            std::cout << Font::colorYellow << "'" << token.tokenName << "'" << Font::reset << ": "
-                      << Font::colorBlue << token.regex.getPattern() << Font::reset;
+            std::cout << Font::colorYellow << "'" << token.tokenName << "'" << Font::colorReset << ": "
+                      << Font::colorBlue << token.regex.getPattern() << Font::colorReset;
 
             if (token.ignore)
-                std::cout << Font::colorRed << " [IGNORED]" << Font::reset;
+                std::cout << Font::colorRed << " [IGNORED]" << Font::colorReset;
 
             std::cout << std::endl;
         }
