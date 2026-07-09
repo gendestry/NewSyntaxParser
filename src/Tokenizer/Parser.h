@@ -29,6 +29,10 @@ namespace Parsing::Tokenizer
 
         bool parse(const std::string &input_file);
 
+        // Lex directly from an in-memory string (clears the token buffer first),
+        // instead of reading a file. Useful for REPLs / interactive input.
+        bool parseString(const std::string &input);
+
         std::vector<Token> &getTokens();
     };
 }

@@ -1,0 +1,34 @@
+# Fixture / group command grammar (ANTLR-flavoured EBNF).
+#   UPPERCASE -> token name (from tokens.txt)
+#   lowercase -> rule reference
+#
+# A program is a sequence of commands. A command either selects fixtures
+# (optionally setting a level in the same line), stores/deletes to a group or
+# preset, clears the current selection, or sets a level with a bare 'at'.
+#   e.g.  1 thru 10   store group 1   clear   5 thru 12 at 100   at preset 2.5
+#
+# NOTE: the grammar parser only supports full-line '#' comments, not inline.
+
+entry   : command+ ;
+
+command : selection at? | store | delete | clear | at ;
+
+# selection
+selection : sel (op sel)* ;
+op        : PLUS | MINUS ;
+
+sel       : fixsel | grpsel ;
+modsel    : grpsel | presetsel ;
+
+# fixsel: single id, or an inclusive range
+fixsel    : NUM (THRU NUM)? ;
+
+# grpsel: 'group' N   /   presetsel: 'preset' N.M
+grpsel    : GROUP NUM ;
+presetsel : PRESET NUM DOT NUM ;
+
+# actions
+store  : STORE modsel ;
+delete : DELETE modsel ;
+clear  : CLEAR ;
+at     : AT (NUM | presetsel) ;

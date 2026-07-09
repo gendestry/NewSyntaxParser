@@ -1,0 +1,8 @@
+1 thru 10
+store group 1
+clear
+11 thru 20
+store group 2
+clear
+1 thru 8
+10 thru 20

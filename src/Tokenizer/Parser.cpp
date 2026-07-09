@@ -50,8 +50,21 @@ namespace Parsing::Tokenizer
             return false;
         }
 
+        return parseString(input.value());
+    }
+
+    bool Parser::parseString(const std::string &input)
+    {
+        if (!b_parsedTokens)
+        {
+            return false;
+        }
+
+        // Start fresh so repeated calls (e.g. a REPL) don't accumulate tokens.
+        v_tokens.clear();
+
         int pos = 0, prevpos = 0;
-        auto sinput = input.value();
+        auto sinput = input;
 
         Utils::Text::LineCounter lineCounter;
         lineCounter.count(sinput);
@@ -86,7 +99,6 @@ namespace Parsing::Tokenizer
 
                         if (pos == sinput.length())
                         {
-                            logger.println("DELLLLA");
                             b_parsedTokens = true;
                             return true;
                         }

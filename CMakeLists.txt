@@ -58,3 +58,4 @@ endfunction()
 # ---- examples ---------------------------------------------------------------
 add_subdirectory(examples/basic)
 add_subdirectory(examples/complex)
+add_subdirectory(examples/test)
