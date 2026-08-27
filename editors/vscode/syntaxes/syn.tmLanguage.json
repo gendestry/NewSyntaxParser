@@ -1,0 +1,45 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "SyntaxParser Grammar",
+  "scopeName": "source.syntaxparser.syn",
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#rule-definition" },
+    { "include": "#token-ref" },
+    { "include": "#rule-ref" },
+    { "include": "#operator" },
+    { "include": "#terminator" }
+  ],
+  "repository": {
+    "comment": {
+      "match": "#.*$",
+      "name": "comment.line.number-sign.syntaxparser"
+    },
+    "rule-definition": {
+      "comment": "Rule name at the start of a line followed by ':' — the production being defined.",
+      "match": "^(\\s*)([A-Za-z_][A-Za-z0-9_]*)\\s*(:)",
+      "captures": {
+        "2": { "name": "entity.name.function.rule.syntaxparser" },
+        "3": { "name": "keyword.operator.definition.syntaxparser" }
+      }
+    },
+    "token-ref": {
+      "comment": "UPPERCASE identifiers reference terminals defined in tokens.txt.",
+      "match": "\\b[A-Z][A-Z0-9_]*\\b",
+      "name": "constant.language.token.syntaxparser"
+    },
+    "rule-ref": {
+      "comment": "lowercase identifiers reference other grammar rules.",
+      "match": "\\b[a-z][A-Za-z0-9_]*\\b",
+      "name": "variable.other.rule.syntaxparser"
+    },
+    "operator": {
+      "match": "[|*+?()]",
+      "name": "keyword.operator.ebnf.syntaxparser"
+    },
+    "terminator": {
+      "match": ";",
+      "name": "punctuation.terminator.rule.syntaxparser"
+    }
+  }
+}

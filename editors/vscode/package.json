@@ -1,0 +1,72 @@
+{
+  "name": "syntaxparser-highlight",
+  "displayName": "SyntaxParser Highlighting",
+  "description": "Syntax highlighting for NewSyntaxParser grammar files (.syn), AST specs (ast.spec) and token definitions (tokens.txt). No runtime dependencies.",
+  "version": "0.1.0",
+  "publisher": "lightengine",
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "syntaxparser-syn",
+        "aliases": [
+          "SyntaxParser Grammar",
+          "syn"
+        ],
+        "extensions": [
+          ".syn"
+        ],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "syntaxparser-astspec",
+        "aliases": [
+          "SyntaxParser AST Spec",
+          "ast.spec"
+        ],
+        "extensions": [
+          ".spec"
+        ],
+        "filenames": [
+          "ast.spec"
+        ],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "syntaxparser-tokens",
+        "aliases": [
+          "SyntaxParser Tokens"
+        ],
+        "filenames": [
+          "tokens.txt"
+        ],
+        "filenamePatterns": [
+          "*.tokens"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "syntaxparser-syn",
+        "scopeName": "source.syntaxparser.syn",
+        "path": "./syntaxes/syn.tmLanguage.json"
+      },
+      {
+        "language": "syntaxparser-astspec",
+        "scopeName": "source.syntaxparser.astspec",
+        "path": "./syntaxes/ast-spec.tmLanguage.json"
+      },
+      {
+        "language": "syntaxparser-tokens",
+        "scopeName": "source.syntaxparser.tokens",
+        "path": "./syntaxes/tokens.tmLanguage.json"
+      }
+    ]
+  }
+}

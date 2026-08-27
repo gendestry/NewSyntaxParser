@@ -1,0 +1,58 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "SyntaxParser AST Spec",
+  "scopeName": "source.syntaxparser.astspec",
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#namespace" },
+    { "include": "#declaration" },
+    { "include": "#builtin-type" },
+    { "include": "#category-ref" },
+    { "include": "#punctuation" },
+    { "include": "#field-name" }
+  ],
+  "repository": {
+    "comment": {
+      "match": "#.*$",
+      "name": "comment.line.number-sign.syntaxparser"
+    },
+    "namespace": {
+      "comment": "'namespace Foo' — the target C++ namespace.",
+      "match": "^(\\s*)(namespace)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+      "captures": {
+        "2": { "name": "keyword.control.namespace.syntaxparser" },
+        "3": { "name": "entity.name.namespace.syntaxparser" }
+      }
+    },
+    "declaration": {
+      "comment": "'program', 'category Name', 'record Name' — top-level declarations.",
+      "match": "^(\\s*)(program|category|record)\\b(?:\\s+([A-Za-z_][A-Za-z0-9_]*))?",
+      "captures": {
+        "2": { "name": "keyword.control.declaration.syntaxparser" },
+        "3": { "name": "entity.name.type.class.syntaxparser" }
+      }
+    },
+    "builtin-type": {
+      "comment": "Primitive field types with a fixed C++ mapping.",
+      "match": "\\b(string|i64)\\b",
+      "name": "support.type.primitive.syntaxparser"
+    },
+    "category-ref": {
+      "comment": "Capitalised identifier used as a field type; optional [] makes it a list.",
+      "match": "\\b([A-Z][A-Za-z0-9_]*)\\b",
+      "name": "entity.name.type.syntaxparser"
+    },
+    "punctuation": {
+      "patterns": [
+        { "match": "[{}]", "name": "punctuation.section.block.syntaxparser" },
+        { "match": "\\[\\]", "name": "punctuation.definition.array.syntaxparser" },
+        { "match": ";", "name": "punctuation.separator.field.syntaxparser" }
+      ]
+    },
+    "field-name": {
+      "comment": "lowercase identifier following a type: the field's name.",
+      "match": "\\b[a-z][A-Za-z0-9_]*\\b",
+      "name": "variable.other.member.syntaxparser"
+    }
+  }
+}
