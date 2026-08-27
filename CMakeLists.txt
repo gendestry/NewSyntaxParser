@@ -12,7 +12,7 @@ add_subdirectory(lib/Utils)
 # The reusable engine: the tokenizer + the grammar-driven parse engine. It
 # knows nothing about any particular language; examples supply their own
 # tokens.txt / lang.syn / ast.spec and link against this.
-file(GLOB_RECURSE SYNPARSER_SOURCES
+file(GLOB_RECURSE SYNPARSER_SOURCES CONFIGURE_DEPENDS
     ${CMAKE_SOURCE_DIR}/src/Syntax/*.cpp
     ${CMAKE_SOURCE_DIR}/src/Tokenizer/*.cpp)
 
@@ -40,7 +40,7 @@ function(add_synparser_example name)
         COMMENT "Generating ${name}/Ast.gen.h from ast.spec")
     add_custom_target(${name}_gen_ast DEPENDS ${gen_header})
 
-    file(GLOB EXAMPLE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+    file(GLOB EXAMPLE_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
     add_executable(${name} ${EXAMPLE_SOURCES})
     add_dependencies(${name} ${name}_gen_ast)
     target_link_libraries(${name} PRIVATE synparser)
