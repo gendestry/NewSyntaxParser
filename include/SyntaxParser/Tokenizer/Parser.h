@@ -1,19 +1,10 @@
 #pragma once
 #include "Utils/Logging/Logger.h"
-#include "Tokenizer/FileParser.h"
+#include "FileParser.h"
+#include "SyntaxParser/Tokenizer/Token.h"
 
 namespace Parsing::Tokenizer
 {
-    struct Token
-    {
-        unsigned int start, end;
-        std::string name;
-        std::string value;
-        bool ignore = false;
-        unsigned int col, row;
-
-        std::string toString() const;
-    };
     class Parser
     {
         Parsing::Tokenizer::FileParser file;

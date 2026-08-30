@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include "Utils/Regex/Matcher.h"
+#include "Utils/Logging/Logger.h"
 
 namespace Parsing::Tokenizer
 {
@@ -19,10 +20,12 @@ namespace Parsing::Tokenizer
         std::string m_FilePath;
         std::string m_FileContent;
 
+        Utils::Logger logger;
+
         TokenMap tokenMaps;
 
     public:
-        FileParser() = default;
+        FileParser() : logger("FileParser") {};
         FileParser(const std::string &file_path);
 
         // bool parse();

@@ -4,7 +4,7 @@
 
 #include "Syntax/Grammar.h"
 #include "Syntax/Node.h"
-#include "Tokenizer/Parser.h"
+#include "../../include/SyntaxParser/Tokenizer/Parser.h"
 
 namespace Parsing::Syntax
 {

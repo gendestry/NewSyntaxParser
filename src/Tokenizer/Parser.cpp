@@ -1,17 +1,10 @@
-#include "Parser.h"
+#include "SyntaxParser/Tokenizer/Parser.h"
 #include "Utils/File/File.h"
-#include "Utils/Text/Stream.h"
 #include "Utils/Text/LineCounter.h"
 #include <exception>
 
 namespace Parsing::Tokenizer
 {
-    std::string Token::toString() const
-    {
-        // return Utils::String::format("[{} {}:{}] '{}'", name, col, row, value);
-        return Utils::String::format("[{}] '{}'", name, value);
-    }
-
     Parser::Parser(const std::string &token_file)
         : logger("Tokenizer")
     {
@@ -20,18 +13,10 @@ namespace Parsing::Tokenizer
 
     bool Parser::parseTokens(const std::string &input_file)
     {
-        try
-        {
-            logger.debug("Parsing tokens from file: '{}'", input_file);
-            file = FileParser(input_file);
-            file.parse();
-        }
-        catch (const std::exception &e)
-        {
-            logger.error("Error parsing tokens: '{}'", e.what());
-            return false;
-        }
-        return true;
+
+        logger.info("Parsing tokens from file: '{}'", Theme::name(input_file));
+        file = FileParser(input_file);
+        return file.parse();
     }
 
     bool Parser::parse(const std::string &input_file)
@@ -41,7 +26,7 @@ namespace Parsing::Tokenizer
             return false;
         }
 
-        logger.debug("Parsing input from file: '{}'", input_file);
+        logger.info("Parsing input from file: '{}'", Theme::name(input_file));
 
         auto input = Utils::File::read(input_file);
         if (!input.has_value())

@@ -7,7 +7,7 @@
 //    3. Lower that tree into the typed AST generated from ast.spec (Basic::).
 //    4. Walk the AST with a visitor to compute the value.
 // =============================================================================
-#include "Tokenizer/Parser.h"
+#include "../../include/SyntaxParser/Tokenizer/Parser.h"
 #include "Syntax/GrammarParser.h"
 #include "Syntax/Engine.h"
 
@@ -93,8 +93,13 @@ struct Evaluator : Basic::ExprVisitor
 int main()
 {
     // 1. Lex.
+    Utils::Logger logger("main");
+    Utils::Logger::setLevel(Utils::Logger::Level::DEBUGGING);
     Parsing::Tokenizer::Parser lexer("tokens.txt");
-    lexer.parse("input.txt");
+    if (!lexer.parse("input.txt")) {
+        logger.error("Error parsing tokens");
+        return 1;
+    }
 
     std::vector<Parsing::Tokenizer::Token> tokens;
     for (auto &t : lexer.getTokens())
@@ -102,7 +107,11 @@ int main()
             tokens.push_back(t);
 
     // 2. Parse against the grammar.
-    auto grammar = Parsing::Syntax::GrammarParser::parseFile("lang.syn");
+    auto g = Parsing::Syntax::GrammarParser::parseFile("lang.syn");
+    if (!g.has_value())
+        return 1;
+
+    auto grammar = g.value();
     Parsing::Syntax::Engine engine(grammar, tokens);
     auto cst = engine.parse(grammar.startRule);
     if (!cst)
@@ -119,6 +128,7 @@ int main()
 
     // 4. Evaluate.
     Evaluator evaluator;
+    evaluator.
     std::cout << "result = " << evaluator.eval(*ast) << "\n";
     return 0;
 }

@@ -1,12 +1,18 @@
 #include "Syntax/GrammarParser.h"
 
+#include <algorithm>
 #include <cctype>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
 
+#include "Utils/File/File.h"
+#include "Utils/Colors/Theme.h"
+
 namespace Parsing::Syntax
 {
+    Utils::Logger GrammarParser::logger("GrammarParser");
+
     namespace
     {
         // ---- meta-lexer: turn a rule body into a stream of meta-tokens ------
@@ -52,6 +58,14 @@ namespace Parsing::Syntax
                 case '*': out.push_back({MTok::Star, ""}); i++; break;
                 case '+': out.push_back({MTok::Plus, ""}); i++; break;
                 case '?': out.push_back({MTok::Question, ""}); i++; break;
+                case ':':
+                    // A ':' can never legally appear inside a rule body — the only place
+                    // it's valid is between a rule's name and its body, which the caller
+                    // has already split off before we get here. Seeing one here almost
+                    // always means *this* rule was never terminated with ';', so the next
+                    // rule's "name : body" got swallowed into this rule's body instead.
+                    throw std::runtime_error(Theme::err(
+                        "unexpected ':' in rule body (missing ';' to terminate this rule?)"));
                 case '\'':
                 {
                     std::size_t j = i + 1;
@@ -63,7 +77,9 @@ namespace Parsing::Syntax
                         val += body[j++];
                     }
                     if (j >= body.size())
-                        throw std::runtime_error("grammar: unterminated literal in '" + body + "'");
+                        throw std::runtime_error(Utils::Font::format(
+                            Theme::err(Utils::Font::group("unterminated literal in '", Theme::name("{}"), "'")),
+                            body));
                     out.push_back({MTok::Literal, val});
                     i = j + 1;
                     break;
@@ -79,8 +95,10 @@ namespace Parsing::Syntax
                     }
                     else
                     {
-                        throw std::runtime_error(
-                            std::string("grammar: unexpected character '") + c + "' in rule body");
+                        throw std::runtime_error(Utils::Font::format(
+                            Theme::err(
+                                Utils::Font::group("unexpected character '", Theme::name("{}"), "' in rule body")),
+                            std::string(1, c)));
                     }
                 }
             }
@@ -106,7 +124,7 @@ namespace Parsing::Syntax
             {
                 Symbol s = parseChoice();
                 if (peek().kind != MTok::End)
-                    throw std::runtime_error("grammar: trailing tokens in rule body");
+                    throw std::runtime_error(Theme::err("trailing tokens in rule body"));
                 return s;
             }
 
@@ -140,7 +158,8 @@ namespace Parsing::Syntax
                 while (startsPrimary())
                     items.push_back(parsePostfix());
                 if (items.empty())
-                    throw std::runtime_error("grammar: empty sequence (misplaced '|' or '()')");
+                    throw std::runtime_error(
+                        Theme::err("empty sequence (misplaced '|' or '()')"));
                 if (items.size() == 1)
                     return items.front();
                 return seq(std::move(items));
@@ -172,11 +191,11 @@ namespace Parsing::Syntax
                     advance();
                     Symbol inner = parseChoice();
                     if (!check(MTok::RParen))
-                        throw std::runtime_error("grammar: missing ')'");
+                        throw std::runtime_error(Theme::err("missing ')'"));
                     advance();
                     return inner;
                 }
-                throw std::runtime_error("grammar: expected a name, literal or '('");
+                throw std::runtime_error(Theme::err("expected a name, literal or '('"));
             }
         };
 
@@ -192,20 +211,35 @@ namespace Parsing::Syntax
 
     Grammar GrammarParser::parseText(const std::string &text)
     {
-        // 1. Drop full-line comments, keep everything else.
+        // 1. Drop full-line comments, keep everything else, remembering which
+        //    original source line each joined line came from.
         std::stringstream joined;
+        std::vector<int> origLineOf; // origLineOf[i] == source line number of joined line i
         std::stringstream in(text);
         std::string line;
+        int lineNo = 0;
         while (std::getline(in, line))
         {
+            lineNo++;
             std::string t = trim(line);
             if (t.empty() || t[0] == '#')
                 continue;
             joined << line << '\n';
+            origLineOf.push_back(lineNo);
         }
 
-        Grammar grammar;
         const std::string all = joined.str();
+
+        // Maps an offset into `all` back to the original source line number.
+        auto lineAt = [&](std::size_t offset) -> int
+        {
+            std::size_t joinedLine = std::count(all.begin(), all.begin() + std::min(offset, all.size()), '\n');
+            if (joinedLine >= origLineOf.size())
+                joinedLine = origLineOf.empty() ? 0 : origLineOf.size() - 1;
+            return origLineOf.empty() ? 0 : origLineOf[joinedLine];
+        };
+
+        Grammar grammar;
 
         // 2. Split into rules on ';'.
         std::size_t start = 0;
@@ -215,9 +249,12 @@ namespace Parsing::Syntax
             if (semi == std::string::npos)
             {
                 if (!trim(all.substr(start)).empty())
-                    throw std::runtime_error("grammar: rule not terminated with ';'");
+                    throw std::runtime_error(Utils::Font::format(
+                        Theme::err(Utils::Font::group("line ", Theme::num("{}"), ": rule not terminated with ';'")),
+                        lineAt(start)));
                 break;
             }
+            std::size_t chunkStart = start;
             std::string chunk = all.substr(start, semi - start);
             start = semi + 1;
 
@@ -225,39 +262,70 @@ namespace Parsing::Syntax
             if (ruleText.empty())
                 continue;
 
+            std::size_t leading = chunk.find_first_not_of(" \t\r\n");
+            const int ruleLine = lineAt(chunkStart + (leading == std::string::npos ? 0 : leading));
+
             // 3. Split `name : body`.
             std::size_t colon = ruleText.find(':');
             if (colon == std::string::npos)
-                throw std::runtime_error("grammar: rule missing ':' in '" + ruleText + "'");
+                throw std::runtime_error(Utils::Font::format(
+                    Theme::err(Utils::Font::group(
+                        "line ", Theme::num("{}"), ": rule missing ':' in '", Theme::name("{}"), "'")),
+                    ruleLine, ruleText));
 
             std::string name = trim(ruleText.substr(0, colon));
             std::string body = ruleText.substr(colon + 1);
             if (name.empty())
-                throw std::runtime_error("grammar: rule with empty name");
+                throw std::runtime_error(Utils::Font::format(
+                    Theme::err(Utils::Font::group("line ", Theme::num("{}"), ": rule with empty name")), ruleLine));
 
             // 4. Parse the body into a Symbol tree.
-            auto meta = lex(body);
-            Symbol sym = BodyParser(meta).parse();
+            try
+            {
+                auto meta = lex(body);
+                Symbol sym = BodyParser(meta).parse();
 
-            if (grammar.startRule.empty())
-                grammar.startRule = name;
-            grammar.rules[name] = Rule{name, std::move(sym)};
+                if (grammar.startRule.empty())
+                    grammar.startRule = name;
+                grammar.rules[name] = Rule{name, std::move(sym)};
+            }
+            catch (const std::exception &e)
+            {
+                throw std::runtime_error(Utils::Font::format(
+                    Theme::err(Utils::Font::group(
+                        "line ", Theme::num("{}"), ": rule '", Theme::name("{}"), "': ", std::string(e.what()))),
+                    ruleLine, name));
+            }
         }
 
         // 5. Validate references.
         if (std::string bad = grammar.validate(); !bad.empty())
-            throw std::runtime_error("grammar: reference to undefined rule '" + bad + "'");
+            throw std::runtime_error(Utils::Font::format(
+                Theme::err(Utils::Font::group("reference to undefined rule '", Theme::name("{}"), "'")), bad));
 
         return grammar;
     }
 
-    Grammar GrammarParser::parseFile(const std::string &path)
+    std::optional<Grammar> GrammarParser::parseFile(const std::string &path)
     {
         std::ifstream f(path);
-        if (!f)
-            throw std::runtime_error("grammar: cannot open file '" + path + "'");
+        if (!f) {
+            logger.error("Cannot open file: '{}'", Theme::name(path));
+            return std::nullopt;
+            // throw std::runtime_error("grammar: cannot open file '" + path + "'");
+        }
         std::stringstream ss;
         ss << f.rdbuf();
-        return parseText(ss.str());
+
+        try {
+            auto p = parseText(ss.str());
+            return p;
+        }
+        catch (std::exception &e) {
+            logger.error("Parsing file: '{}': {}", Theme::name(path), e.what());
+        }
+
+        return std::nullopt;
+
     }
 }

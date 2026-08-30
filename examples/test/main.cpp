@@ -1,6 +1,6 @@
 #include "Syntax/Engine.h"
 #include "Syntax/GrammarParser.h"
-#include "Tokenizer/Parser.h"
+#include "../../include/SyntaxParser/Tokenizer/Parser.h"
 
 #include "Tree/Builder.h"
 #include "Tree/Interpreter.h"
@@ -36,7 +36,12 @@ static fs::path exeDir(const char *argv0) {
 int main(int argc, char **argv) {
   const fs::path base = exeDir(argc > 0 ? argv[0] : "");
   Parsing::Tokenizer::Parser lexer((base / "tokens.txt").string());
-  auto grammar = Parsing::Syntax::GrammarParser::parseFile((base / "lang.syn").string());
+  auto g = Parsing::Syntax::GrammarParser::parseFile("lang.syn");
+  if (!g.has_value())
+    return 1;
+
+  auto grammar = g.value();
+  // auto grammar = Parsing::Syntax::GrammarParser::parseFile((base / "lang.syn").string());
   Sel::Interpreter interp;
 
   std::string line;

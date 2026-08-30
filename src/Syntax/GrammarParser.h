@@ -2,6 +2,7 @@
 #include <string>
 
 #include "Syntax/Grammar.h"
+#include "Utils/Logging/Logger.h"
 
 namespace Parsing::Syntax
 {
@@ -22,8 +23,9 @@ namespace Parsing::Syntax
     // Throws std::runtime_error with a descriptive message on a malformed file.
     class GrammarParser
     {
+        static Utils::Logger logger;
     public:
-        static Grammar parseFile(const std::string &path);
+        static std::optional<Grammar> parseFile(const std::string &path);
         static Grammar parseText(const std::string &text);
     };
 }

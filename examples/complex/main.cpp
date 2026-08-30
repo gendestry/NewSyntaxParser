@@ -73,7 +73,7 @@
 // typed AST, and prints it — no evaluation.
 #include "AstBuilder.h"
 
-#include "Tokenizer/Parser.h"
+#include "../../include/SyntaxParser/Tokenizer/Parser.h"
 #include "Syntax/GrammarParser.h"
 #include "Syntax/Engine.h"
 
@@ -90,7 +90,11 @@ int main()
         if (!t.ignore)
             tokens.push_back(t);
 
-    auto grammar = Parsing::Syntax::GrammarParser::parseFile("lang.syn");
+    auto g = Parsing::Syntax::GrammarParser::parseFile("lang.syn");
+    if (!g.has_value())
+        return 1;
+
+    auto grammar = g.value();
     Parsing::Syntax::Engine engine(grammar, tokens);
     auto cst = engine.parse(grammar.startRule);
     if (!cst)

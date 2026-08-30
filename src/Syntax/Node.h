@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "Tokenizer/Parser.h" // Parsing::Tokenizer::Token
+#include "SyntaxParser/Tokenizer/Parser.h"
 
 namespace Parsing::Syntax
 {

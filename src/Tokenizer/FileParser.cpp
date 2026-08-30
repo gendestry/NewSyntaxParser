@@ -1,4 +1,4 @@
-#include "FileParser.h"
+#include "SyntaxParser/Tokenizer/FileParser.h"
 #include <fstream>
 #include <iostream>
 
@@ -9,7 +9,7 @@ using Utils::Regex::Matcher;
 
 namespace Parsing::Tokenizer
 {
-    FileParser::FileParser(const std::string &file_path) : m_FilePath(file_path)
+    FileParser::FileParser(const std::string &file_path) : m_FilePath(file_path), logger("FileParser")
     {
     }
 
@@ -19,7 +19,7 @@ namespace Parsing::Tokenizer
 
         if (!file.is_open())
         {
-            throw std::runtime_error("Error: file '" + m_FilePath + "' not found");
+            logger.error("Could not open file '{}'", Theme::name(m_FilePath));
             return false;
         }
 
@@ -48,8 +48,7 @@ namespace Parsing::Tokenizer
 
             tokenMaps.push_back({name, Matcher(pattern), ignore});
         }
-        return false;
-        // Parse the file content
+        return true;
     }
 
     void FileParser::print()
