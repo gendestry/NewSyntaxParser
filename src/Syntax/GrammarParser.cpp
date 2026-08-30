@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cctype>
 #include <fstream>
+#include <print>
 #include <sstream>
 #include <stdexcept>
 
@@ -64,8 +65,8 @@ namespace Parsing::Syntax
                     // has already split off before we get here. Seeing one here almost
                     // always means *this* rule was never terminated with ';', so the next
                     // rule's "name : body" got swallowed into this rule's body instead.
-                    throw std::runtime_error(Theme::err(
-                        "unexpected ':' in rule body (missing ';' to terminate this rule?)"));
+                    throw std::runtime_error(
+                        "unexpected ':' in rule body (missing ';' to terminate this rule?)");
                 case '\'':
                 {
                     std::size_t j = i + 1;
@@ -78,7 +79,7 @@ namespace Parsing::Syntax
                     }
                     if (j >= body.size())
                         throw std::runtime_error(Utils::Font::format(
-                            Theme::err(Utils::Font::group("unterminated literal in '", Theme::name("{}"), "'")),
+                            Utils::Font::group("unterminated literal in '", Theme::name("{}"), "'"),
                             body));
                     out.push_back({MTok::Literal, val});
                     i = j + 1;
@@ -96,8 +97,7 @@ namespace Parsing::Syntax
                     else
                     {
                         throw std::runtime_error(Utils::Font::format(
-                            Theme::err(
-                                Utils::Font::group("unexpected character '", Theme::name("{}"), "' in rule body")),
+                            Utils::Font::group("unexpected character '", Theme::name("{}"), "' in rule body"),
                             std::string(1, c)));
                     }
                 }
@@ -124,7 +124,7 @@ namespace Parsing::Syntax
             {
                 Symbol s = parseChoice();
                 if (peek().kind != MTok::End)
-                    throw std::runtime_error(Theme::err("trailing tokens in rule body"));
+                    throw std::runtime_error("trailing tokens in rule body");
                 return s;
             }
 
@@ -158,8 +158,7 @@ namespace Parsing::Syntax
                 while (startsPrimary())
                     items.push_back(parsePostfix());
                 if (items.empty())
-                    throw std::runtime_error(
-                        Theme::err("empty sequence (misplaced '|' or '()')"));
+                    throw std::runtime_error("empty sequence (misplaced '|' or '()')");
                 if (items.size() == 1)
                     return items.front();
                 return seq(std::move(items));
@@ -191,11 +190,11 @@ namespace Parsing::Syntax
                     advance();
                     Symbol inner = parseChoice();
                     if (!check(MTok::RParen))
-                        throw std::runtime_error(Theme::err("missing ')'"));
+                        throw std::runtime_error("missing ')'");
                     advance();
                     return inner;
                 }
-                throw std::runtime_error(Theme::err("expected a name, literal or '('"));
+                throw std::runtime_error("expected a name, literal or '('");
             }
         };
 
@@ -211,6 +210,14 @@ namespace Parsing::Syntax
 
     Grammar GrammarParser::parseText(const std::string &text)
     {
+        auto linedesc = [&](uint32_t line) {
+            return Utils::Font::format(Utils::Font::group(":", Theme::num("{}")), line);
+        };
+
+        auto chardesc = [&](const std::string& c) {
+            return Utils::Font::format(Utils::Font::group("'", Theme::name(c), "'"));
+        };
+
         // 1. Drop full-line comments, keep everything else, remembering which
         //    original source line each joined line came from.
         std::stringstream joined;
@@ -250,8 +257,8 @@ namespace Parsing::Syntax
             {
                 if (!trim(all.substr(start)).empty())
                     throw std::runtime_error(Utils::Font::format(
-                        Theme::err(Utils::Font::group("line ", Theme::num("{}"), ": rule not terminated with ';'")),
-                        lineAt(start)));
+                        Utils::Font::group(linedesc(lineAt(start)), ": rule not terminated with {}"),
+                        chardesc(";")));
                 break;
             }
             std::size_t chunkStart = start;
@@ -269,15 +276,14 @@ namespace Parsing::Syntax
             std::size_t colon = ruleText.find(':');
             if (colon == std::string::npos)
                 throw std::runtime_error(Utils::Font::format(
-                    Theme::err(Utils::Font::group(
-                        "line ", Theme::num("{}"), ": rule missing ':' in '", Theme::name("{}"), "'")),
-                    ruleLine, ruleText));
+                    Utils::Font::group(linedesc(ruleLine), ": rule missing {} in '{}'"),
+                    chardesc(":"), ruleText));
 
             std::string name = trim(ruleText.substr(0, colon));
             std::string body = ruleText.substr(colon + 1);
             if (name.empty())
                 throw std::runtime_error(Utils::Font::format(
-                    Theme::err(Utils::Font::group("line ", Theme::num("{}"), ": rule with empty name")), ruleLine));
+                    Utils::Font::group(linedesc(ruleLine), ": rule with empty name")));
 
             // 4. Parse the body into a Symbol tree.
             try
@@ -292,16 +298,16 @@ namespace Parsing::Syntax
             catch (const std::exception &e)
             {
                 throw std::runtime_error(Utils::Font::format(
-                    Theme::err(Utils::Font::group(
-                        "line ", Theme::num("{}"), ": rule '", Theme::name("{}"), "': ", std::string(e.what()))),
-                    ruleLine, name));
+                    Utils::Font::group(
+                        linedesc(ruleLine), ": rule '", Theme::name("{}"), "': ", Theme::err(std::string(e.what()))),
+                    name));
             }
         }
 
         // 5. Validate references.
         if (std::string bad = grammar.validate(); !bad.empty())
             throw std::runtime_error(Utils::Font::format(
-                Theme::err(Utils::Font::group("reference to undefined rule '", Theme::name("{}"), "'")), bad));
+                Utils::Font::group("reference to undefined rule '", Theme::name("{}"), "'"), bad));
 
         return grammar;
     }
@@ -317,12 +323,14 @@ namespace Parsing::Syntax
         std::stringstream ss;
         ss << f.rdbuf();
 
+        logger.info("Parsing file: '{}'", Theme::name(path));
+
         try {
             auto p = parseText(ss.str());
             return p;
         }
         catch (std::exception &e) {
-            logger.error("Parsing file: '{}': {}", Theme::name(path), e.what());
+            logger.error("File '{}'{}", Theme::name(path), e.what());
         }
 
         return std::nullopt;

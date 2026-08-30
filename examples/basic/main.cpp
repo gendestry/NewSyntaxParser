@@ -128,7 +128,6 @@ int main()
 
     // 4. Evaluate.
     Evaluator evaluator;
-    evaluator.
     std::cout << "result = " << evaluator.eval(*ast) << "\n";
     return 0;
 }
