@@ -18,11 +18,9 @@ file(GLOB_RECURSE SYNPARSER_SOURCES CONFIGURE_DEPENDS
 
 add_library(synparser STATIC ${SYNPARSER_SOURCES})
 target_link_libraries(synparser PUBLIC utils)
-target_include_directories(synparser
-        PUBLIC
-        ${CMAKE_SOURCE_DIR}/src
-        ${CMAKE_SOURCE_DIR}/include
-)
+target_include_directories(synparser PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/NewSyntaxParser/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/NewSyntaxParser/include)
 
 # ---- AST generator (shared by examples that declare an ast.spec) ------------
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
