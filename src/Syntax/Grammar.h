@@ -54,4 +54,12 @@ namespace Parsing::Syntax
     inline Symbol star(Symbol c) { return {SymKind::Star, "", {std::move(c)}}; }
     inline Symbol plus(Symbol c) { return {SymKind::Plus, "", {std::move(c)}}; }
     inline Symbol optional(Symbol c) { return {SymKind::Optional, "", {std::move(c)}}; }
+
+    // Reconstruct a single rule body as EBNF text (roughly what the .syn file
+    // held; grouping parens are added wherever they're needed to stay valid).
+    std::string toEbnf(const Symbol &sym);
+
+    // Pretty-print the whole grammar to stdout, start rule first. Handy right
+    // after GrammarParser::parseFile to see what the parser actually built.
+    void printGrammar(const Grammar &grammar);
 }

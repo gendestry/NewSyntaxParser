@@ -1,7 +1,9 @@
 #include "SyntaxParser/Tokenizer/Parser.h"
+#include <exception>
+#include <ranges>
+#include <sstream>
 #include "Utils/File/File.h"
 #include "Utils/Text/LineCounter.h"
-#include <exception>
 
 namespace Parsing::Tokenizer
 {
@@ -75,8 +77,9 @@ namespace Parsing::Tokenizer
                         col = lineCounter.getXOffset(pos); // THIS IS WRONG
                         row = lineCounter.accumulate(pos);
 
-                        logger.debug("Match token {}: '{}'", token.tokenName, v.match == "\n" ? "\\n" : v.match);
                         v_tokens.emplace_back(pos, pos + v.match.length(), token.tokenName, v.match, token.ignore, col, row);
+                        logger.debug("Match token {}", v_tokens.back().toString());
+                        // logger.debug("Match token {}: '{}'", token.tokenName, v.match == "\n" ? "\\n" : v.match);
                         prevpos = pos;
                         pos += v.match.length();
 
@@ -105,5 +108,30 @@ namespace Parsing::Tokenizer
     std::vector<Token> &Parser::getTokens()
     {
         return v_tokens;
+    }
+
+    std::string Parser::toString() const
+    {
+        std::stringstream ss;
+
+        const Token *prev = nullptr;
+        uint16_t r = 0;
+        for (const auto &token : v_tokens | std::views::filter([](const Token &t) { return t.enabled(); }))
+        {
+            if (prev)
+            {
+                // if (token.row != prev->row)
+                ss << (token.row != prev->row ? std::format("\n{:3}: ", token.row) : " ");
+            }
+            else {
+                ss << std::format("{:3}: ", token.row);
+            }
+
+
+            ss << token.toString();
+            prev = &token;
+        }
+
+        return ss.str();
     }
 }

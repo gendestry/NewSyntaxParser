@@ -19,6 +19,10 @@ namespace Parsing::Tokenizer {
         {
         }
 
+        // A token the parser emitted but that carries no meaning downstream
+        // (whitespace, comments) is marked ignore; everything else is enabled.
+        [[nodiscard]] bool enabled() const { return !ignore; }
+
         [[nodiscard]] std::string toString() const override;
     };
 }

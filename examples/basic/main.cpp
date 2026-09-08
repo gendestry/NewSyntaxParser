@@ -112,6 +112,10 @@ int main()
         return 1;
 
     auto grammar = g.value();
+    std::cout << "--- grammar (lang.syn) ---\n";
+    Parsing::Syntax::printGrammar(grammar);
+    std::cout << "\n";
+
     Parsing::Syntax::Engine engine(grammar, tokens);
     auto cst = engine.parse(grammar.startRule);
     if (!cst)
@@ -122,6 +126,8 @@ int main()
             std::cerr << "parse error: unexpected end of input\n";
         return 1;
     }
+
+    Parsing::Syntax::printTree(cst->kids[0]);
 
     // 3. Lower to the typed AST (entry : expr, so the expr is the first kid).
     Basic::ExprPtr ast = buildExpr(cst->kids[0]);

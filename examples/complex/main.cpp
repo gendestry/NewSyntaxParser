@@ -84,6 +84,7 @@ int main()
 {
     Parsing::Tokenizer::Parser lexer("tokens.txt");
     lexer.parse("input.txt");
+    std::cout<<lexer.toString()<<std::endl;
 
     std::vector<Parsing::Tokenizer::Token> tokens;
     for (auto &t : lexer.getTokens())

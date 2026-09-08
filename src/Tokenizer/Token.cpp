@@ -2,13 +2,12 @@
 // Created by bobi on 30. 8. 26.
 //
 #include "SyntaxParser/Tokenizer/Token.h"
-#include "Utils/Text/String.h"
-
+#include "Utils/Colors/Theme.h"
 
 namespace Parsing::Tokenizer
 {
 std::string Token::toString() const
 {
-    return name + "(" + value + ")";
+    return format(group(Theme::name("{}"),"[", Theme::num("{}"), "]({},{})"), name, value, col, col + value.size());
 }
 } // namespace Parsing::Tokenizer
