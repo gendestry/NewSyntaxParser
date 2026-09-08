@@ -293,6 +293,7 @@ namespace Parsing::Syntax
 
                 if (grammar.startRule.empty())
                     grammar.startRule = name;
+                grammar.sortedRules.push_back(name);
                 grammar.rules[name] = Rule{name, std::move(sym)};
             }
             catch (const std::exception &e)

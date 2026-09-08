@@ -3,6 +3,9 @@
 #include <vector>
 #include <unordered_map>
 
+#include "Utils/Traits/ID.h"
+#include "Utils/Traits/Stringify.h"
+
 namespace Parsing::Syntax
 {
     // A Symbol is one node in the right-hand side of a grammar rule.
@@ -28,13 +31,18 @@ namespace Parsing::Syntax
     };
 
     struct Rule
+    // struct Rule : Utils::Traits::IDGenerator<Rule>
     {
         std::string name;
         Symbol body;
+
+        // Rule(){}
+        // Rule(std::string setname, Symbol body) : name(std::move(setname)), body(std::move(body)) {}
     };
 
-    struct Grammar
+    struct Grammar : Utils::Traits::Stringify
     {
+        std::vector<std::string> sortedRules;
         std::unordered_map<std::string, Rule> rules;
         std::string startRule; // first rule declared in the file
 
@@ -43,6 +51,8 @@ namespace Parsing::Syntax
         // Verify every RuleRef points at a declared rule and the start rule
         // exists. Returns the offending name on failure, "" on success.
         std::string validate() const;
+
+        [[nodiscard]] std::string toString() const override;
     };
 
     // --- Symbol construction helpers (used by the grammar parser) ---------
@@ -58,8 +68,4 @@ namespace Parsing::Syntax
     // Reconstruct a single rule body as EBNF text (roughly what the .syn file
     // held; grouping parens are added wherever they're needed to stay valid).
     std::string toEbnf(const Symbol &sym);
-
-    // Pretty-print the whole grammar to stdout, start rule first. Handy right
-    // after GrammarParser::parseFile to see what the parser actually built.
-    void printGrammar(const Grammar &grammar);
 }

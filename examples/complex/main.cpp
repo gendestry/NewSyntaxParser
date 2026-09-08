@@ -96,6 +96,7 @@ int main()
         return 1;
 
     auto grammar = g.value();
+    std::cout << grammar.toString() << std::endl;
     Parsing::Syntax::Engine engine(grammar, tokens);
     auto cst = engine.parse(grammar.startRule);
     if (!cst)
